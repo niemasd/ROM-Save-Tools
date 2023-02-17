@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 '''
-Nintendo GameBoy ROM Files (.gb)
+Nintendo GameBoy ROM Files (.gb) and GameBoy Color ROM Files (.gbc)
 '''
 # Sources:
 # http://gameboy.mongenel.com/dmg/asmmemmap.html
