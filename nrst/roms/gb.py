@@ -9,25 +9,26 @@ from .. import common
 from struct import unpack
 from sys import stdout
 
-# GB ROM/cartridge memory map as (START, END+1, LABEL) tuples
+# GB ROM/cartridge memory map as (START, END, LABEL) tuples
 ROM_MEMORY_MAP = [
-    (0x0000, 0x0100, 'Restart and Interrupt Vector Table'),
-    (0x0100, 0x0104, 'Header - Entry Point'),
-    (0x0104, 0x0134, 'Header - Nintendo Logo'),
-    (0x0134, 0x013F, 'Header - Title + Manufacturer Code + CGB Flag'),
-    (0x013F, 0x0143, 'Header - Manufacturer Code (or Title continued)'),
-    (0x0143, 0x0144, 'Header - CGB Flag (or Title continued)'),
-    (0x0144, 0x0146, 'Header - New Licensee Code'),
-    (0x0146, 0x0147, 'Header - SGB Flag'),
-    (0x0147, 0x0148, 'Header - Cartridge Type'),
-    (0x0148, 0x0149, 'Header - ROM Banks'),
-    (0x0149, 0x014A, 'Header - RAM Banks'),
-    (0x014A, 0x014B, 'Header - Destination Code'),
-    (0x014B, 0x014C, 'Header - Old Licensee Code'),
-    (0x014C, 0x014D, 'Header - ROM Version Number'),
-    (0x014D, 0x014E, 'Header - Checksum of [0x0134, 0x014D)'),
-    (0x014E, 0x0150, 'Header - Checksum of Entire Cartridge'),
-    # TODO CONTINUE HERE http://gameboy.mongenel.com/dmg/asmmemmap.html
+    (0x0000, 0x00FF, 'Restart and Interrupt Vector Table'),
+    (0x0100, 0x0103, 'Header - Entry Point'),
+    (0x0104, 0x0133, 'Header - Nintendo Logo'),
+    (0x0134, 0x013E, 'Header - Title + Manufacturer Code + CGB Flag'),
+    (0x013F, 0x0142, 'Header - Manufacturer Code (or Title continued)'),
+    (0x0143, 0x0143, 'Header - CGB Flag (or Title continued)'),
+    (0x0144, 0x0145, 'Header - New Licensee Code'),
+    (0x0146, 0x0146, 'Header - SGB Flag'),
+    (0x0147, 0x0147, 'Header - Cartridge Type'),
+    (0x0148, 0x0148, 'Header - ROM Banks'),
+    (0x0149, 0x0149, 'Header - RAM Banks'),
+    (0x014A, 0x014A, 'Header - Destination Code'),
+    (0x014B, 0x014B, 'Header - Old Licensee Code'),
+    (0x014C, 0x014C, 'Header - ROM Version Number'),
+    (0x014D, 0x014D, 'Header - Checksum of [0x0134, 0x014D)'),
+    (0x014E, 0x014F, 'Header - Checksum of Entire Cartridge'),
+    (0x0150, 0x3FFF, 'Cartridge ROM - Bank 0'),
+    (0x4000, 0x7FFF, 'Cartridge ROM - Switchable Banks 1+'),
 ]
 
 # GB new licensee codes (0x0144-0x0145)
