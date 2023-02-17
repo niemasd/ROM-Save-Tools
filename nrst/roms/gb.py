@@ -26,6 +26,8 @@ ROM_MEMORY_MAP = [
     (0x014B, 0x014C, 'Header - Old Licensee Code'),
     (0x014C, 0x014D, 'Header - ROM Version Number'),
     (0x014D, 0x014E, 'Header - Checksum of [0x0134, 0x014D)'),
+    (0x014E, 0x0150, 'Header - Checksum of Entire Cartridge'),
+    # TODO CONTINUE HERE http://gameboy.mongenel.com/dmg/asmmemmap.html
 ]
 
 # GB new licensee codes (0x0144-0x0145)
@@ -313,6 +315,10 @@ class GB:
     # initialize GB object
     def __init__(self, data):
         self.data = common.load_data(data)
+
+    # save GB file
+    def save(self, out_file, overwrite=False):
+        common.save_data(self.data, out_file, overwrite=overwrite)
 
     # get title (might include manufacturer code)
     def get_title(self):

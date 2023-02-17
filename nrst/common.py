@@ -3,7 +3,7 @@
 Functions/classes that are generally useful
 '''
 from gzip import open as gopen
-from os.path import isfile
+from os.path import isdir, isfile
 from sys import stdout
 
 # useful constants
@@ -21,6 +21,23 @@ def load_data(data):
             return open(data, 'rb').read()
     else:
         raise ValueError("Invalid data argument: %s" % data)
+
+# save data to file
+def save_data(data, out_file, overwrite=False):
+    close_file = False
+    if isinstance(out_file, str):
+        if isfile(out_file) and not overwrite:
+            raise ValueError("Output file exists: %s" % out_file)
+        elif isdir(out_file):
+            raise ValueError("Output exists as directory: %s" % out_file)
+        if out_file.lower().endswith('.gz'):
+            out_file = gopen(out_file, 'wb')
+        else:
+            out_file = open(out_file, 'wb')
+        close_file = True
+    out_file.write(data)
+    if close_file:
+        out_file.close()
 
 # convert ASCII-containing bytes to string
 def bytes_to_str(data):
