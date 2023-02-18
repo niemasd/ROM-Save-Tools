@@ -37,41 +37,41 @@ class SAV:
 
     # get video RAM (VRAM)
     def get_vram(self):
-        return self.data[0x8000:0xA000]
+        return self.data[0x0000:0x2000] # [0x8000, 0xA000) - 0x8000
 
     # get external RAM
     def get_ext_ram(self):
-        return self.data[0xA000:0xC000]
+        return self.data[0x2000:0x4000] # [0xA000, 0xC000) - 0x8000
 
     # get work RAM (WRAM) 1
     def get_wram_1(self):
-        return self.data[0xC000:0xD000]
+        return self.data[0x4000:0x5000] # [0xC000, 0xD000) - 0x8000
 
     # get work RAM (WRAM) 2
     def get_wram_2(self):
-        return self.data[0xD000:0xE000]
+        return self.data[0x5000:0x6000] # [0xD000, 0xE000) - 0x8000
 
     # get ECHO RAM (should be mirror of [0xC000, 0xDDFF])
     def get_echo_ram(self):
-        return self.data[0xE000:0xFE00]
+        return self.data[0x6000:0x7E00] # [0xE000, 0xFE00) - 0x8000
 
     # get sprite attribute table (object attribute memory, OAM)
     def get_oam(self):
-        return self.data[0xFE00:0xFEA0]
+        return self.data[0x7E00:0x7EA0] # [0xFE00, 0xFEA0) - 0x8000
 
     # get I/O registers
     def get_io_reg(self):
-        return self.data[0xFF00:0xFF80]
+        return self.data[0x7F00:0x7F80] # [0xFF00, 0xFF80) - 0x8000
 
     # get high RAM (HRAM)
     def get_hram(self):
-        return self.data[0xFF80:0xFFFF]
+        return self.data[0x7F80:0x7FFF] # [0xFF80, 0xFFFF) - 0x8000
 
     # get interrupt enable (IE) register
     def get_ie_reg(self):
-        return self.data[0xFFFF]
+        return self.data[0x7FFF] # 0xFFFF - 0x8000
 
     # show a summary of this SAV
     def show_summary(self, f=stdout, end='\n'):
         f.write("- Save Size: %d bytes%s" % (len(self.data), end))
-        f.write("- ECHO RAM: %s%s" % ({True:'Valid',False:'Invalid'}[self.get_echo_ram() == self.data[0xC000:0xDE00]], end))
+        f.write("- ECHO RAM: %s%s" % ({True:'Valid',False:'Invalid'}[self.get_echo_ram() == self.data[0x4000:0x5E00]], end))
