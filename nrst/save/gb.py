@@ -26,16 +26,16 @@ MEMORY_MAP = [
     (0xFFFF, 0xFFFF, 'Interrupt Enable (IE) Register'), # https://gbdev.io/pandocs/Interrupts.html#interrupts
 ]
 
-# LCD control (LCDC) register bits as (BIT, MASK, LABEL, USAGE) tuples
+# LCD control (LCDC) register bits as (MASK, LABEL, USAGE) tuples
 LCDC_BITS = [
-    (7, 0b10000000, "LCD and PPU enable",            {0:'Off',           1:'On'}),
-    (6, 0b01000000, "Window tile map area",          {0:(0x9800,0x9BFF), 1:(0x9C00,0x9FFF)}),
-    (5, 0b00100000, "Window enable",                 {0:'Off',           1:'On'}),
-    (4, 0b00010000, "BG and Window tile data area",  {0:(0x8800,0x97FF), 1:(0x8000,0x8FFF)}),
-    (3, 0b00001000, "BG tile map area",              {0:(0x9800,0x9BFF), 1:(0x9C00,0x9FFF)}),
-    (2, 0b00000100, "OBJ size",                      {0:'8x8',           1:'8x16'}),
-    (1, 0b00000010, "OBJ enable",                    {0:'Off',           1:'On'}),
-    (0, 0b00000001, "BG and Window enable/priority", {0:'Off',           1:'On'}),
+    (0b00000001, "BG and Window enable/priority", {0:'Off',           1:'On'}), # bit 0 (LSB)
+    (0b00000010, "OBJ enable",                    {0:'Off',           1:'On'}),
+    (0b00000100, "OBJ size",                      {0:'8x8',           1:'8x16'}),
+    (0b00001000, "BG tile map area",              {0:(0x9800,0x9BFF), 1:(0x9C00,0x9FFF)}),
+    (0b00010000, "BG and Window tile data area",  {0:(0x8800,0x97FF), 1:(0x8000,0x8FFF)}),
+    (0b00100000, "Window enable",                 {0:'Off',           1:'On'}),
+    (0b01000000, "Window tile map area",          {0:(0x9800,0x9BFF), 1:(0x9C00,0x9FFF)}),
+    (0b10000000, "LCD and PPU enable",            {0:'Off',           1:'On'}), # bit 7 (MSB)
 ]
 
 
@@ -95,3 +95,8 @@ class SAV:
         f.write("- ECHO RAM: %s%s" % ({True:'Valid',False:'Invalid'}[self.get_echo_ram() == self.data[0x4000:0x5E00]], end))
         lcdc = self.get_lcdc()
         f.write("- LCD Control (LCDC) Register: %s%s" % (bin(lcdc)[2:], end))
+        for m, l, u in LCDC_BITS[::-1]: # print from bit 7 to bit 0
+            v = u[(lcdc & m) % 1]
+            if isinstance(v, tuple):
+                v = "0x%s-0x%s" % (common.byte_to_hex_str(v[0]), common.byte_to_hex_str(v[1]))
+            f.write("  - %s: %s%s" % (l, v, end))

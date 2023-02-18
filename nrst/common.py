@@ -43,6 +43,14 @@ def save_data(data, out_file, overwrite=False):
 def bytes_to_str(data):
     return ''.join(chr(v) for v in data if ASCII_MIN <= v <= ASCII_MAX)
 
+# convert byte to hex string
+def byte_to_hex_str(b, length=None):
+    tmp = hex(b)[2:].upper()
+    if length is None:
+        return tmp
+    else:
+        return tmp.zfill(length)
+
 # print bytes as hexadecimal numbers
 def print_hex(data, delim=' ', end='\n', cols=16, f=stdout):
     for i, v in enumerate(data):
@@ -51,5 +59,5 @@ def print_hex(data, delim=' ', end='\n', cols=16, f=stdout):
                 f.write(end)
             else:
                 f.write(delim)
-        f.write(hex(v)[2:].upper().zfill(2))
+        f.write(byte_to_hex_str(v, length=2))
     f.write(end)

@@ -358,28 +358,28 @@ class GB:
     def get_cartridge_type(self):
         tmp = self.data[0x0147]
         if tmp not in CARTRIDGE_TYPES:
-            raise ValueError("Invalid cartridge type: %s" % hex(tmp))
+            raise ValueError("Invalid cartridge type: %s" % common.byte_to_hex_str(tmp))
         return CARTRIDGE_TYPES[tmp]
 
     # get ROM size and number of ROM banks as (size in bytes, number of banks) tuple
     def get_rom_size_num_banks(self):
         tmp = self.data[0x0148]
         if tmp not in ROM_BANKS:
-            raise ValueError("Invalid ROM size: %s" % hex(tmp))
+            raise ValueError("Invalid ROM size: %s" % common.byte_to_hex_str(tmp))
         return ROM_BANKS[tmp]
 
     # get RAM size and banks as (SRAM size in bytes, number of banks) tuple
     def get_ram_size_num_banks(self):
         tmp = self.data[0x0149]
         if tmp not in RAM_BANKS:
-            raise ValueError("Invalid RAM size: %s" % hex(tmp))
+            raise ValueError("Invalid RAM size: %s" % common.byte_to_hex_str(tmp))
         return RAM_BANKS[tmp]
 
     # get destination
     def get_destination(self):
         tmp = self.data[0x014A]
         if tmp not in DESTINATION_CODES:
-            raise ValueError("Invalid destination code: %s" % hex(tmp))
+            raise ValueError("Invalid destination code: %s" % common.byte_to_hex_str(tmp))
         return DESTINATION_CODES[tmp]
 
     # get licensee
@@ -391,7 +391,7 @@ class GB:
                 raise ValueError("Invalid new licensee code: %s" % new_code)
             return NEW_LICENSEE_CODES[new_code]
         elif old_code not in OLD_LICENSEE_CODES:
-            raise ValueError("Invalid old licensee code: %s" % hex(old_code))
+            raise ValueError("Invalid old licensee code: %s" % common.byte_to_hex_str(old_code))
         return OLD_LICENSEE_CODES[old_code]
 
     # get ROM version number
