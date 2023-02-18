@@ -14,7 +14,7 @@ ROM_MEMORY_MAP = [
     (0x0000, 0x00FF, 'Restart and Interrupt Vector Table'),
     (0x0100, 0x0103, 'Header - Entry Point'),
     (0x0104, 0x0133, 'Header - Nintendo Logo'),
-    (0x0134, 0x013E, 'Header - Title + Manufacturer Code + CGB Flag'),
+    (0x0134, 0x013E, 'Header - Title'),
     (0x013F, 0x0142, 'Header - Manufacturer Code (or Title continued)'),
     (0x0143, 0x0143, 'Header - CGB Flag (or Title continued)'),
     (0x0144, 0x0145, 'Header - New Licensee Code'),

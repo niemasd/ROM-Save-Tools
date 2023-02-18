@@ -1,12 +1,11 @@
 #! /usr/bin/env python3
 '''
-Nintendo GameBoy RAM Save Files (.sav)
+Nintendo GameBoy and GameBoy Color Save Files
 '''
 # Sources:
 # http://gameboy.mongenel.com/dmg/asmmemmap.html
 # https://gbdev.io/pandocs/Memory_Map.html
 from .. import common
-from struct import unpack
 from sys import stdout
 
 # GB memory map as (START, END, LABEL) tuples
@@ -39,7 +38,7 @@ LCDC_BITS = [
 ]
 
 
-# helper class to represent GB RAM Saves (.sav)
+# helper class to represent GB/GBC RAM saves (.sav)
 class SAV:
     # initialize SAV object
     def __init__(self, data):
