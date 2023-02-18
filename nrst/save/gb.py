@@ -12,7 +12,9 @@ from sys import stdout
 # GB memory map as (START, END, LABEL) tuples
 MEMORY_MAP = [
     (0x0000, 0x7FFF, 'ROM Banks'), # see nrst.rom.gb.ROM_MEMORY_MAP
-    (0x8000, 0x9FFF, 'Video RAM (VRAM)'),
+    (0x8000, 0x97FF, 'Video RAM (VRAM) - Tile Data'),
+    (0x9800, 0x9BFF, 'Video RAM (VRAM) - Tile Map 1'),
+    (0x9C00, 0x9FFF, 'Video RAM (VRAM) - Tile Map 2'),
     (0xA000, 0xBFFF, 'External RAM'),
     (0xC000, 0xCFFF, 'Work RAM (WRAM)'),
     (0xD000, 0xDFFF, 'Work RAM (WRAM)'),
@@ -22,6 +24,18 @@ MEMORY_MAP = [
     (0xFF00, 0xFF7F, 'I/O Registers'), # https://gbdev.io/pandocs/Memory_Map.html#io-ranges
     (0xFF80, 0xFFFE, 'High RAM (HRAM)'),
     (0xFFFF, 0xFFFF, 'Interrupt Enable (IE) Register'), # https://gbdev.io/pandocs/Interrupts.html#interrupts
+]
+
+# LCD control (LCDC) register bits as (BIT, MASK, LABEL, USAGE) tuples
+LCDC_BITS = [
+    (7, 0b10000000, "LCD and PPU enable",            {0:'Off',           1:'On'}),
+    (6, 0b01000000, "Window tile map area",          {0:(0x9800,0x9BFF), 1:(0x9C00,0x9FFF)}),
+    (5, 0b00100000, "Window enable",                 {0:'Off',           1:'On'}),
+    (4, 0b00010000, "BG and Window tile data area",  {0:(0x8800,0x97FF), 1:(0x8000,0x8FFF)}),
+    (3, 0b00001000, "BG tile map area",              {0:(0x9800,0x9BFF), 1:(0x9C00,0x9FFF)}),
+    (2, 0b00000100, "OBJ size",                      {0:'8x8',           1:'8x16'}),
+    (1, 0b00000010, "OBJ enable",                    {0:'Off',           1:'On'}),
+    (0, 0b00000001, "BG and Window enable/priority", {0:'Off',           1:'On'}),
 ]
 
 
@@ -71,7 +85,13 @@ class SAV:
     def get_ie_reg(self):
         return self.data[0x7FFF] # 0xFFFF - 0x8000
 
+    # get LCD control (LCDC) register
+    def get_lcdc(self):
+        return self.data[0x7F40] # 0xFF40 - 0x8000
+
     # show a summary of this SAV
     def show_summary(self, f=stdout, end='\n'):
         f.write("- Save Size: %d bytes%s" % (len(self.data), end))
         f.write("- ECHO RAM: %s%s" % ({True:'Valid',False:'Invalid'}[self.get_echo_ram() == self.data[0x4000:0x5E00]], end))
+        lcdc = self.get_lcdc()
+        f.write("- LCD Control (LCDC) Register: %s%s" % (bin(lcdc)[2:], end))
