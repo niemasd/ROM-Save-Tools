@@ -1,4 +1,4 @@
-# ROMs/images
+# ROMs/images/saves
 *.bin
 *.cue
 *.gb
@@ -7,6 +7,8 @@
 *.gz
 *.iso
 *.nes
+*.sav
+*.sgm
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
