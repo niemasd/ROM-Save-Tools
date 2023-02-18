@@ -96,7 +96,7 @@ class SAV:
         lcdc = self.get_lcdc()
         f.write("- LCD Control (LCDC) Register: %s%s" % (bin(lcdc)[2:], end))
         for m, l, u in LCDC_BITS[::-1]: # print from bit 7 to bit 0
-            v = u[(lcdc & m) % 1]
+            v = u[{True:0,False:1}[(lcdc & m) == 0]]
             if isinstance(v, tuple):
                 v = "0x%s-0x%s" % (common.byte_to_hex_str(v[0]), common.byte_to_hex_str(v[1]))
             f.write("  - %s: %s%s" % (l, v, end))
