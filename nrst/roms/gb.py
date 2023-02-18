@@ -25,7 +25,7 @@ ROM_MEMORY_MAP = [
     (0x014A, 0x014A, 'Header - Destination Code'),
     (0x014B, 0x014B, 'Header - Old Licensee Code'),
     (0x014C, 0x014C, 'Header - ROM Version Number'),
-    (0x014D, 0x014D, 'Header - Checksum of [0x0134, 0x014D)'),
+    (0x014D, 0x014D, 'Header - Checksum of [0x0134, 0x014C]'),
     (0x014E, 0x014F, 'Header - Checksum of Entire Cartridge'),
     (0x0150, 0x3FFF, 'Cartridge ROM - Bank 0'),
     (0x4000, 0x7FFF, 'Cartridge ROM - Switchable Banks 1+'),
@@ -311,7 +311,7 @@ OLD_LICENSEE_CODES = {
     0xFF: "LJN",
 }
 
-# helper class to represent GB ROMs (.gb)
+# helper class to represent GB ROMs (.gb) and GBC ROMs (.gbc)
 class GB:
     # initialize GB object
     def __init__(self, data):
@@ -400,12 +400,12 @@ class GB:
     def get_header_checksum(self):
         return self.data[0x014D]
 
-    # calculate header checksum from bytes in [0x0134, 0x014D), which should equal 0x014D
+    # calculate header checksum from bytes in [0x0134, 0x014C], which should equal 0x014D
     def calc_header_checksum(self):
         checksum = 256
         for i in range(0x0134, 0x014D):
             checksum -= (self.data[i]+1)
-            if checksum < 0:
+            while checksum < 0:
                 checksum += 256
         return checksum
 
