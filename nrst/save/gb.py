@@ -17,7 +17,7 @@ MEMORY_MAP = [
     (0xC000, 0xCFFF, 'Work RAM (WRAM)'),
     (0xD000, 0xDFFF, 'Work RAM (WRAM)'),
     (0xE000, 0xFDFF, 'ECHO RAM (mirror of [0xC000, 0xDDFF])'),
-    (0xFE00, 0xFE9F, 'Sprite Attribute Table (OAM)'), # https://gbdev.io/pandocs/OAM.html#vram-sprite-attribute-table-oam
+    (0xFE00, 0xFE9F, 'Sprite Attribute Table (Object Attribute Memory, OAM)'), # https://gbdev.io/pandocs/OAM.html#vram-sprite-attribute-table-oam
     (0xFEA0, 0xFEFF, 'Not Usable'),
     (0xFF00, 0xFF7F, 'I/O Registers'), # https://gbdev.io/pandocs/Memory_Map.html#io-ranges
     (0xFF80, 0xFFFE, 'High RAM (HRAM)'),
@@ -35,6 +35,43 @@ class SAV:
     def save(self, out_file, overwrite=False):
         common.save_data(self.data, out_file, overwrite=overwrite)
 
+    # get video RAM (VRAM)
+    def get_vram(self):
+        return self.data[0x8000:0xA000]
+
+    # get external RAM
+    def get_ext_ram(self):
+        return self.data[0xA000:0xC000]
+
+    # get work RAM (WRAM) 1
+    def get_wram_1(self):
+        return self.data[0xC000:0xD000]
+
+    # get work RAM (WRAM) 2
+    def get_wram_2(self):
+        return self.data[0xD000:0xE000]
+
+    # get ECHO RAM (should be mirror of [0xC000, 0xDDFF])
+    def get_echo_ram(self):
+        return self.data[0xE000:0xFE00]
+
+    # get sprite attribute table (object attribute memory, OAM)
+    def get_oam(self):
+        return self.data[0xFE00:0xFEA0]
+
+    # get I/O registers
+    def get_io_reg(self):
+        return self.data[0xFF00:0xFF80]
+
+    # get high RAM (HRAM)
+    def get_hram(self):
+        return self.data[0xFF80:0xFFFF]
+
+    # get interrupt enable (IE) register
+    def get_ie_reg(self):
+        return self.data[0xFFFF]
+
     # show a summary of this SAV
     def show_summary(self, f=stdout, end='\n'):
         f.write("- Save Size: %d bytes%s" % (len(self.data), end))
+        f.write("- ECHO RAM: %s%s" % ({True:'Valid',False:'Invalid'}[self.get_echo_ram() == self.data[0xC000:0xDE00]], end))
