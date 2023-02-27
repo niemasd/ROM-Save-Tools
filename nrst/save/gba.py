@@ -97,6 +97,126 @@ VBA_FLASH_SAVE_DATA_3_STRUCT = [
     ('flashSaveMemory',  SIZE['FLASH_1M'], None),
 ]
 
+# VBA old GBA state struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L603-L678
+VBA_OLD_GAME_STATE_STRUCT = [
+    ('soundPaused',             4, '<i'),
+    ('soundPlay',               4, '<i'),
+    ('soundTicks',              4, '<i'),
+    ('SOUND_CLOCK_TICKS',       4, '<i'),
+    ('soundLevel1',             4, '<i'),
+    ('soundLevel2',             4, '<i'),
+    ('soundBalance',            4, '<i'),
+    ('soundMasterOn',           4, '<i'),
+    ('soundIndex',              4, '<i'),
+    ('sound1On',                4, '<i'),
+    ('sound1ATL',               4, '<i'),
+    ('sound1Skip',              4, '<i'),
+    ('sound1Index',             4, '<i'),
+    ('sound1Continue',          4, '<i'),
+    ('sound1EnvelopeVolume',    4, '<i'),
+    ('sound1EnvelopeATL',       4, '<i'),
+    ('sound1EnvelopeATLReload', 4, '<i'),
+    ('sound1EnvelopeUpDown',    4, '<i'),
+    ('sound1SweepATL',          4, '<i'),
+    ('sound1SweepATLReload',    4, '<i'),
+    ('sound1SweepSteps',        4, '<i'),
+    ('sound1SweepUpDown',       4, '<i'),
+    ('sound1SweepStep',         4, '<i'),
+    ('sound2On',                4, '<i'),
+    ('sound2ATL',               4, '<i'),
+    ('sound2Skip',              4, '<i'),
+    ('sound2Index',             4, '<i'),
+    ('sound2Continue',          4, '<i'),
+    ('sound2EnvelopeVolume',    4, '<i'),
+    ('sound2EnvelopeATL',       4, '<i'),
+    ('sound2EnvelopeATLReload', 4, '<i'),
+    ('sound2EnvelopeUpDown',    4, '<i'),
+    ('sound3On',                4, '<i'),
+    ('sound3ATL',               4, '<i'),
+    ('sound3Skip',              4, '<i'),
+    ('sound3Index',             4, '<i'),
+    ('sound3Continue',          4, '<i'),
+    ('sound3OutputLevel',       4, '<i'),
+    ('sound4On',                4, '<i'),
+    ('sound4ATL',               4, '<i'),
+    ('sound4Skip',              4, '<i'),
+    ('sound4Index',             4, '<i'),
+    ('sound4Clock',             4, '<i'),
+    ('sound4ShiftRight',        4, '<i'),
+    ('sound4ShiftSkip',         4, '<i'),
+    ('sound4ShiftIndex',        4, '<i'),
+    ('sound4NSteps',            4, '<i'),
+    ('sound4CountDown',         4, '<i'),
+    ('sound4Continue',          4, '<i'),
+    ('sound4EnvelopeVolume',    4, '<i'),
+    ('sound4EnvelopeATL',       4, '<i'),
+    ('sound4EnvelopeATLReload', 4, '<i'),
+    ('sound4EnvelopeUpDown',    4, '<i'),
+    ('soundEnableFlag',         4, '<i'),
+    ('soundControl',            4, '<i'),
+    ('pcm[0].readIndex',        4, '<i'),
+    ('pcm[0].count',            4, '<i'),
+    ('pcm[0].writeIndex',       4, '<i'),
+    ('soundDSAEnabled',         1,  'B'),
+    ('soundDSATimer',           4, '<i'),
+    ('pcm[0].fifo',            32, None),
+    ('state.soundDSAValue',     1,  'B'),
+    ('pcm[1].readIndex',        4, '<i'),
+    ('pcm[1].count',            4, '<i'),
+    ('pcm[1].writeIndex',       4, '<i'),
+    ('soundDSBEnabled',         4, '<i'),
+    ('soundDSBTimer',           4, '<i'),
+    ('pcm[1].fifo',            32, None),
+    ('state.soundDSBValue',     4, '<i'),
+]
+
+# VBA old GBA state 2 struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L680-L686
+VBA_OLD_GAM_STATE2_STRUCT = [
+    ('state.apu.regs',    32, None),
+    ('sound3Bank',         4, '<i'),
+    ('sound3DataSize',     4, '<i'),
+    ('sound3ForcedOutput', 4, '<i'),
+]
+
+# VBA GBA state struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L690-L737
+VBA_GAME_STATE_STRUCT = [
+    ('pcm[0].readIndex',              4, '<i'),
+    ('pcm[0].count',                  4, '<i'),
+    ('pcm[0].writeIndex',             4, '<i'),
+    ('pcm[0].fifo',                  32, None),
+    ('pcm[0].dac',                    4, '<i'),
+    ('pcm[0].room_for_expansion',    16, None),
+    ('pcm[1].readIndex',              4, '<i'),
+    ('pcm[1].count',                  4, '<i'),
+    ('pcm[1].writeIndex',             4, '<i'),
+    ('pcm[1].fifo',                  32, None),
+    ('pcm[1].dac',                    4, '<i'),
+    ('pcm[1].room_for_expansion',    16, None),
+    ('state.apu.regs',               64, None),
+    ('state.apu.frame_time',          4, '<i'),
+    ('state.apu.frame_phase',         4, '<i'),
+    ('state.apu.sweep_freq',          4, '<i'),
+    ('state.apu.sweep_delay',         4, '<i'),
+    ('state.apu.sweep_enabled',       4, '<i'),
+    ('state.apu.sweep_neg',           4, '<i'),
+    ('state.apu.noise_divider',       4, '<i'),
+    ('state.apu.wave_buf',            4, '<i'),
+    ('state.apu.delay',              16, None),
+    ('state.apu.length_ctr',         16, None),
+    ('state.apu.phase',              16, None),
+    ('state.apu.enabled',            16, None),
+    ('state.apu.env_delay',          12, None),
+    ('state.apu.env_volume',         12, None),
+    ('state.apu.env_enabled',        12, None),
+    ('state.apu.room_for_expansion', 52, None),
+    ('soundEnableFlag',               4, '<i'),
+    ('soundTicks',                    4, '<i'),
+    ('emulator.room_for_expansion',  56, None),
+]
+
 # VBA SGM save game struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L342-L459
 VBA_SGM_SAVE_GAME_STRUCT = [
@@ -258,10 +378,9 @@ class VBA_SGM:
         self.eeprom_save_data = dict()
         for n, s, f in VBA_EEPROM_SAVE_DATA_STRUCT: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L72
             if f is None:
-                self.eeprom_save_data[n] = data[ind:ind+s]
+                self.eeprom_save_data[n] = data[ind:ind+s]; ind += s
             else:
-                self.eeprom_save_data[n] = unpack(f, data[ind:ind+s])[0]
-            ind += s
+                self.eeprom_save_data[n] = unpack(f, data[ind:ind+s])[0]; ind += s
         if self.save_game_version < 3: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L73-L79
             self.eeprom_size = SIZE['EEPROM_512'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L78
         else:
@@ -276,14 +395,32 @@ class VBA_SGM:
         self.flash_save_data = dict()
         for n, s, f in flash_save_data_struct:
             if f is None:
-                self.flash_save_data[n] = data[ind:ind+s]
+                self.flash_save_data[n] = data[ind:ind+s]; ind += s
             else:
-                self.flash_save_data[n] = unpack(f, data[ind:ind+s])[0]
-            ind += s
+                self.flash_save_data[n] = unpack(f, data[ind:ind+s])[0]; ind += s
         if self.save_game_version > 9: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L808
-            self.gba_state = dict() # TODO
+            self.gba_state = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L809
+            for n, s, f in VBA_GAME_STATE_STRUCT:
+                if f is None:
+                    self.gba_state[n] = data[ind:ind+s]; ind += s
+                else:
+                    self.gba_state[n] = unpack(f, data[ind:ind+s])[0]; ind += s
         else: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L811
-            pass # TODO
+            self.old_gba_state = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L768
+            for n, s, f in VBA_OLD_GAME_STATE_STRUCT:
+                if f is None:
+                    self.old_gba_state[n] = data[ind:ind+s]; ind += s
+                else:
+                    self.old_gba_state[n] = unpack(f, data[ind:ind+s])[0]; ind += s
+            ind += 5880 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L769
+            if version >= 3: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L790
+                self.old_gba_state2 = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L791
+                for n, s, f in VBA_OLD_GAM_STATE2_STRUCT:
+                    if f is None:
+                        self.old_gba_state2[n] = data[ind:ind+s]; ind += s
+                    else:
+                        self.old_gba_state2[n] = unpack(f, data[ind:ind+s])[0]; ind += s
+            ind += 4 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L797
         if self.save_game_version > 1: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L856-L863
             num_cheats = min(VBA_MAX_CHEATS, unpack('<i', data[ind:ind+4])[0]); ind += 4 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Cheats.cpp#L2591
             self.cheats_list = [None]*num_cheats
@@ -310,10 +447,9 @@ class VBA_SGM:
             self.rtc_clock_data = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/RTC.cpp#L19-L33
             for n, s, f in VBA_RTC_CLOCK_DATA_STRUCT:
                 if f is None:
-                    self.rtc_clock_data[n] = data[ind:ind+s]
+                    self.rtc_clock_data[n] = data[ind:ind+s]; ind += s
                 else:
-                    self.rtc_clock_data[n] = unpack(f, data[ind:ind+s])[0]
-                ind += s
+                    self.rtc_clock_data[n] = unpack(f, data[ind:ind+s])[0]; ind += s
         #print(len(data)); print(ind); exit() # TODO DELETE WHEN DONE
 
     # save VBA_SGM file
