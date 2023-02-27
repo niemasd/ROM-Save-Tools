@@ -8,6 +8,95 @@ from os.path import isdir, isfile
 from struct import pack, unpack
 from sys import stdout
 
+# relevant GBA sizes
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/GBA.h#L34-L56
+SIZE = {
+    'SRAM':       0x0008000,
+    'FLASH_512':  0x0010000,
+    'FLASH_1M':   0x0020000,
+    'EEPROM_512': 0x0000200,
+    'EEPROM_8K':  0x0002000,
+    'ROM':        0x2000000,
+    'BIOS':       0x0004000,
+    'IRAM':       0x0008000,
+    'WRAM':       0x0040000,
+    'PRAM':       0x0000400,
+    'VRAM':       0x0020000,
+    'OAM':        0x0000400,
+    'IOMEM':      0x0000400,
+    'PIX':        0x0025800, # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/GBA.h#L54
+    'PIX_ALT':    0x0026208, # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/GBA.h#L52
+}
+
+# VBA constants
+VBA_MAX_CHEATS = 16384
+
+# VBA CheatsData struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Cheats.h#L6-L17
+VBA_CHEATS_DATA_STRUCT = [
+    ('code',        4, '<i'),
+    ('size',        4, '<i'),
+    ('status',      4, '<i'),
+    ('enabled',     1,  '?'),
+    ('rawaddress',  4, '<I'),
+    ('address',     4, '<I'),
+    ('value',       4, '<I'),
+    ('oldValue',    4, '<I'),
+    ('codestring', 20, None),
+    ('desc',       32, None),
+]
+
+# VBA RTCCLOCKDATA struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/RTC.cpp#L19-L33
+VBA_RTC_CLOCK_DATA_STRUCT = [
+    ('byte0',     1,  'B'),
+    ('select',    1,  'B'),
+    ('enable',    1,  'B'),
+    ('command',   1,  'B'),
+    ('dataLen',   4, '<i'),
+    ('bits',      4, '<i'),
+    ('state',     4, None),
+    ('data',     12, None),
+    ('reserved', 12, None),
+    ('reserved2', 1,  '?'),
+    ('reserved3', 4, '<I'),
+]
+
+# VBA EEPROM save data struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L20-L29
+VBA_EEPROM_SAVE_DATA_STRUCT = [
+    ('eepromMode',                  4, '<i'),
+    ('eepromByte',                  4, '<i'),
+    ('eepromBits',                  4, '<i'),
+    ('eepromAddress',               4, '<i'),
+    ('eepromInUse',                 1,  '?'),
+    ('eepromData', SIZE['EEPROM_512'], None),
+    ('eepromBuffer',               16, None),
+]
+
+# VBA flash save data struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/Flash.cpp#L237-L242
+VBA_FLASH_SAVE_DATA_1_STRUCT = [
+    ('flashState',                      4, '<i'),
+    ('flashReadState',                  4, '<i'),
+    ('flashSaveMemory', SIZE['FLASH_512'], None),
+]
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/Flash.cpp#L244-L250
+VBA_FLASH_SAVE_DATA_2_STRUCT = [
+    ('flashState',                      4, '<i'),
+    ('flashReadState',                  4, '<i'),
+    ('flashSize',                       4, '<i'),
+    ('flashSaveMemory',  SIZE['FLASH_1M'], None),
+]
+# https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/Flash.cpp#L216-L223
+VBA_FLASH_SAVE_DATA_3_STRUCT = [
+    ('flashState',                      4, '<i'),
+    ('flashReadState',                  4, '<i'),
+    ('flashSize',                       4, '<i'),
+    ('flashBank',                       4, '<i'),
+    ('flashSaveMemory',  SIZE['FLASH_1M'], None),
+]
+
 # VBA SGM save game struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L342-L459
 VBA_SGM_SAVE_GAME_STRUCT = [
@@ -135,7 +224,7 @@ VBA_SGM_SAVE_GAME_STRUCT = [
 class VBA_SGM:
     # initialize VBA_SGM object
     def __init__(self, filename):
-        data = gopen(filename).read(); ind = 0x0000
+        data = gopen(filename).read(); ind = 0
         self.save_game_version = unpack('<i', data[ind:ind+4])[0]; ind += 4 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L778-L785
         self.rom_name = common.bytes_to_str(data[ind:ind+16]); ind += 16 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L787-L798
         self.use_bios = False if unpack('<i', data[ind:ind+4])[0] == 0 else True; ind += 4 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L800-L810
@@ -153,13 +242,79 @@ class VBA_SGM:
             self.irq_tricks = 0
             self.int_state = False
         else:
-            self.irq_tricks = unpack('<i', data[ind:ind+4])[0]
+            self.irq_tricks = unpack('<i', data[ind:ind+4])[0]; ind += 4
             if self.irq_tricks > 0:
                 self.int_state = True
             else:
                 self.irq_tricks = 0
                 self.int_state = False
-        # TODO HERE
+        self.iram = data[ind:ind+SIZE['IRAM']]; ind += SIZE['IRAM'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L834
+        self.pram = data[ind:ind+SIZE['PRAM']]; ind += SIZE['PRAM'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L835
+        self.wram = data[ind:ind+SIZE['WRAM']]; ind += SIZE['WRAM'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L836
+        self.vram = data[ind:ind+SIZE['VRAM']]; ind += SIZE['VRAM'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L837
+        self.oam = data[ind:ind+SIZE['OAM']]; ind += SIZE['OAM'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L838
+        self.pix = data[ind:ind+SIZE['PIX']]; ind += SIZE['PIX'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L839-L842
+        self.iomem = data[ind:ind+SIZE['IOMEM']]; ind += SIZE['IOMEM'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L843
+        self.eeprom_save_data = dict()
+        for n, s, f in VBA_EEPROM_SAVE_DATA_STRUCT: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L72
+            if f is None:
+                self.eeprom_save_data[n] = data[ind:ind+s]
+            else:
+                self.eeprom_save_data[n] = unpack(f, data[ind:ind+s])[0]
+            ind += s
+        if self.save_game_version < 3: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L73-L79
+            self.eeprom_size = SIZE['EEPROM_512'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L78
+        else:
+            self.eeprom_size = unpack('<i', data[ind:ind+4])[0]; ind += 4 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L74
+            self.eeprom_data = data[ind:ind+SIZE['EEPROM_8K']]; ind += SIZE['EEPROM_8K'] # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/EEprom.cpp#L75
+        if self.save_game_version < 5:
+            flash_save_data_struct = VBA_FLASH_SAVE_DATA_1_STRUCT
+        elif self.save_game_version < 7:
+            flash_save_data_struct = VBA_FLASH_SAVE_DATA_2_STRUCT
+        else:
+            flash_save_data_struct = VBA_FLASH_SAVE_DATA_3_STRUCT
+        self.flash_save_data = dict()
+        for n, s, f in flash_save_data_struct:
+            if f is None:
+                self.flash_save_data[n] = data[ind:ind+s]
+            else:
+                self.flash_save_data[n] = unpack(f, data[ind:ind+s])[0]
+            ind += s
+        if self.save_game_version > 9: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L808
+            self.gba_state = dict() # TODO
+        else: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L811
+            pass # TODO
+        if self.save_game_version > 1: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L856-L863
+            num_cheats = min(VBA_MAX_CHEATS, unpack('<i', data[ind:ind+4])[0]); ind += 4 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Cheats.cpp#L2591
+            self.cheats_list = [None]*num_cheats
+            for i in range(num_cheats):
+                cheat = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Cheats.cpp#L2602-L2613
+                cheat['code'] = unpack('<i', data[ind:ind+4])[0]; ind += 4
+                cheat['size'] = unpack('<i', data[ind:ind+4])[0]; ind += 4
+                cheat['status'] = unpack('<i', data[ind:ind+4])[0]; ind += 4
+                if self.save_game_version < 9:
+                    cheat['enabled'] = False if unpack('<i', data[ind:ind+4])[0] == 0 else True; ind += 4
+                else:
+                    cheat['enabled'] = unpack('?', data[ind:ind+1])[0]; ind += 1
+                if self.save_game_version >= 9:
+                    cheat['rawaddress'] = unpack('<I', data[ind:ind+4])[0]; ind += 4
+                cheat['address'] = unpack('<I', data[ind:ind+4])[0]; ind += 4
+                if self.save_game_version < 9:
+                    cheat['rawaddress'] = cheat['address']
+                cheat['value'] = unpack('<I', data[ind:ind+4])[0]; ind += 4
+                cheat['oldValue'] = unpack('<I', data[ind:ind+4])[0]; ind += 4
+                cheat['codestring'] = common.bytes_to_str(data[ind:ind+20]); ind += 20
+                cheat['desc'] = common.bytes_to_str(data[ind:ind+32]); ind += 32
+                self.cheats_list[i] = cheat
+        if self.save_game_version > 6: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L864-L866
+            self.rtc_clock_data = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/RTC.cpp#L19-L33
+            for n, s, f in VBA_RTC_CLOCK_DATA_STRUCT:
+                if f is None:
+                    self.rtc_clock_data[n] = data[ind:ind+s]
+                else:
+                    self.rtc_clock_data[n] = unpack(f, data[ind:ind+s])[0]
+                ind += s
+        #print(len(data)); print(ind); exit() # TODO DELETE WHEN DONE
 
     # save VBA_SGM file
     def save(self, filename, overwrite=False):
@@ -179,7 +334,56 @@ class VBA_SGM:
             out.write(pack('<i', {True:1,False:0}[self.stop_state]))
         if self.save_game_version >= 4:
             out.write(pack('<i', self.irq_tricks))
-        # TODO HERE
+        out.write(self.iram)
+        out.write(self.pram)
+        out.write(self.wram)
+        out.write(self.vram)
+        out.write(self.oam)
+        out.write(self.pix)
+        out.write(self.iomem)
+        for n, s, f in VBA_EEPROM_SAVE_DATA_STRUCT:
+            if f is None:
+                out.write(self.eeprom_save_data[n])
+            else:
+                out.write(pack(f, self.eeprom_save_data[n]))
+        if self.save_game_version >= 3:
+            out.write(pack('<i', self.eeprom_size))
+            out.write(self.eeprom_data)
+        if self.save_game_version < 5:
+            flash_save_data_struct = VBA_FLASH_SAVE_DATA_1_STRUCT
+        elif self.save_game_version < 7:
+            flash_save_data_struct = VBA_FLASH_SAVE_DATA_2_STRUCT
+        else:
+            flash_save_data_struct = VBA_FLASH_SAVE_DATA_3_STRUCT
+        for n, s, f in flash_save_data_struct:
+            if f is None:
+                out.write(self.flash_save_data[n])
+            else:
+                out.write(pack(f, self.flash_save_data[n]))
+        # TODO GBA STATE STUFF
+        for i in range(len(self.cheats_list)):
+            cheat = cheats_list[i]
+            out.write(pack('<i', cheat['code']))
+            out.write(pack('<i', cheat['size']))
+            out.write(pack('<i', cheat['status']))
+            if self.save_game_version < 9:
+                out.write(pack('<i', {True:1,False:0}[cheat['enabled']]))
+            else:
+                out.write(pack('?', cheat['enabled']))
+            if self.game_version >= 9:
+                out.write(pack('<I', cheat['rawaddress']))
+            out.write(pack('<I', cheat['address']))
+            out.write(pack('<I', cheat['value']))
+            out.write(pack('<I', cheat['oldValue']))
+            out.write(bytes([ord(c) for c in cheat['codestring']] + [0]*(20-len(cheat['codestring']))))
+            out.write(bytes([ord(c) for c in cheat['desc']] + [0]*(32-len(cheat['desc']))))
+        if self.save_game_version >= 9:
+            out.write(bytes([0]*(81*(VBA_MAX_CHEATS-len(self.cheats_list)))))
+        for n, s, f in VBA_RTC_CLOCK_DATA_STRUCT:
+            if f is None:
+                out.write(self.rtc_clock_data[n])
+            else:
+                out.write(pack(f, self.rtc_clock_data[n]))
         out.close()
 
     # show a summary of this VBA_SGM
@@ -194,6 +398,45 @@ class VBA_SGM:
         f.write("- Stop State: %s%s" % (self.stop_state, end))
         f.write("- IRQ Tricks: %d%s" % (self.irq_tricks, end))
         f.write("- Int State: %s%s" % (self.int_state, end))
+        f.write("- IRAM Size: %d bytes%s" % (len(self.iram), end))
+        f.write("- PRAM Size: %d bytes%s" % (len(self.pram), end))
+        f.write("- WRAM Size: %d bytes%s" % (len(self.wram), end))
+        f.write("- VRAM Size: %d bytes%s" % (len(self.vram), end))
+        f.write("- OAM Size: %d bytes%s" % (len(self.oam), end))
+        f.write("- PIX Size: %d bytes%s" % (len(self.pix), end))
+        f.write("- IOMEM Size: %d bytes%s" % (len(self.iomem), end))
+        f.write("- EEPROM Save Data: %d items%s" % (len(self.eeprom_save_data), end))
+        for n, _, __ in VBA_EEPROM_SAVE_DATA_STRUCT:
+            if __ is None:
+                f.write("  - %s Size: %d bytes%s" % (n, len(self.eeprom_save_data[n]), end))
+            else:
+                f.write("  - %s: %s%s" % (n, self.eeprom_save_data[n], end))
+        f.write("- EEPROM Size: %d%s" % (self.eeprom_size, end))
+        if self.save_game_version >= 3:
+            f.write("- EEPROM Data Size: %d bytes%s" % (len(self.eeprom_data), end))
+        f.write("- Flash Save Data: %d items%s" % (len(self.flash_save_data), end))
+        for k, v in self.flash_save_data.items():
+            if isinstance(v, bytes):
+                f.write("  - %s Size: %d bytes%s" % (k, len(v), end))
+            else:
+                f.write("  - %s: %s%s" % (k, v, end))
+        # TODO GBA STATE STUFF
+        f.write("- Cheats List: %d cheats%s" % (len(self.cheats_list), end))
+        for cheat_ind, cheat in enumerate(self.cheats_list):
+            f.write("  - Cheat %d:%s" % (cheat_ind+1, end))
+            f.write("    - Name: %s%s" % (cheat['codestring'], end))
+            f.write("    - Description: %s%s" % (cheat['desc'], end))
+            f.write("    - Enabled: %s%s" % (cheat['enabled'], end))
+            f.write("    - Raw Address: %s%s" % (common.byte_to_hex_str(cheat['rawaddress'], length=8), end))
+            f.write("    - Address: %s%s" % (common.byte_to_hex_str(cheat['address'], length=8), end))
+            f.write("    - Value: %d%s" % (cheat['value'], end))
+            f.write("    - Old Value: %d%s" % (cheat['oldValue'], end))
+        f.write("- RTC Clock Data: %d items%s" % (len(self.rtc_clock_data), end))
+        for n, _, __ in VBA_RTC_CLOCK_DATA_STRUCT:
+            if __ is None:
+                f.write("  - %s Size: %d bytes%s" % (n, len(self.rtc_clock_data[n]), end))
+            else:
+                f.write("  - %s: %s%s" % (n, self.rtc_clock_data[n], end))
         '''
         f.write("- Save Size: %d bytes%s" % (len(self.data), end))
         f.write("- ECHO RAM: %s%s" % ({True:'Valid',False:'Invalid'}[self.get_echo_ram() == self.data[0x4000:0x5E00]], end))
