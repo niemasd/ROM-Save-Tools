@@ -99,7 +99,7 @@ VBA_FLASH_SAVE_DATA_3_STRUCT = [
 
 # VBA old GBA state struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L603-L678
-VBA_OLD_GAME_STATE_STRUCT = [
+VBA_OLD_GBA_STATE_STRUCT = [
     ('soundPaused',             4, '<i'),
     ('soundPlay',               4, '<i'),
     ('soundTicks',              4, '<i'),
@@ -173,7 +173,7 @@ VBA_OLD_GAME_STATE_STRUCT = [
 
 # VBA old GBA state 2 struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L680-L686
-VBA_OLD_GAM_STATE2_STRUCT = [
+VBA_OLD_GBA_STATE2_STRUCT = [
     ('state.apu.regs',    32, None),
     ('sound3Bank',         4, '<i'),
     ('sound3DataSize',     4, '<i'),
@@ -182,7 +182,7 @@ VBA_OLD_GAM_STATE2_STRUCT = [
 
 # VBA GBA state struct elements as (NAME, SIZE IN BYTES, STRUCT FORMAT STRING) tuples
 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L690-L737
-VBA_GAME_STATE_STRUCT = [
+VBA_GBA_STATE_STRUCT = [
     ('pcm[0].readIndex',              4, '<i'),
     ('pcm[0].count',                  4, '<i'),
     ('pcm[0].writeIndex',             4, '<i'),
@@ -400,14 +400,14 @@ class VBA_SGM:
                 self.flash_save_data[n] = unpack(f, data[ind:ind+s])[0]; ind += s
         if self.save_game_version > 9: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L808
             self.gba_state = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L809
-            for n, s, f in VBA_GAME_STATE_STRUCT:
+            for n, s, f in VBA_GBA_STATE_STRUCT:
                 if f is None:
                     self.gba_state[n] = data[ind:ind+s]; ind += s
                 else:
                     self.gba_state[n] = unpack(f, data[ind:ind+s])[0]; ind += s
         else: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L811
             self.old_gba_state = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L768
-            for n, s, f in VBA_OLD_GAME_STATE_STRUCT:
+            for n, s, f in VBA_OLD_GBA_STATE_STRUCT: # TODO HERE DOCS
                 if f is None:
                     self.old_gba_state[n] = data[ind:ind+s]; ind += s
                 else:
@@ -415,7 +415,7 @@ class VBA_SGM:
             ind += 5880 # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L769
             if version >= 3: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L790
                 self.old_gba_state2 = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/8f1b5dae904a48a10b1a27ff6f1de72d451454a6/src/gba/Sound.cpp#L791
-                for n, s, f in VBA_OLD_GAM_STATE2_STRUCT:
+                for n, s, f in VBA_OLD_GBA_STATE2_STRUCT:
                     if f is None:
                         self.old_gba_state2[n] = data[ind:ind+s]; ind += s
                     else:
@@ -443,6 +443,8 @@ class VBA_SGM:
                 cheat['codestring'] = common.bytes_to_str(data[ind:ind+20]); ind += 20
                 cheat['desc'] = common.bytes_to_str(data[ind:ind+32]); ind += 32
                 self.cheats_list[i] = cheat
+            if self.save_game_version >= 9:
+                ind += ((VBA_MAX_CHEATS - num_cheats) * 81)
         if self.save_game_version > 6: # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/f1d3f631d214b8337e1b98fde2b01c867ede1214/src/gba/GBA.cpp#L864-L866
             self.rtc_clock_data = dict() # https://github.com/visualboyadvance-m/visualboyadvance-m/blob/ae09ae7d591fb3ff78abbe3f762184534905405d/src/gba/RTC.cpp#L19-L33
             for n, s, f in VBA_RTC_CLOCK_DATA_STRUCT:
@@ -450,7 +452,7 @@ class VBA_SGM:
                     self.rtc_clock_data[n] = data[ind:ind+s]; ind += s
                 else:
                     self.rtc_clock_data[n] = unpack(f, data[ind:ind+s])[0]; ind += s
-        #print(len(data)); print(ind); exit() # TODO DELETE WHEN DONE
+        print(len(data)); print(ind); exit() # TODO DELETE WHEN DONE
 
     # save VBA_SGM file
     def save(self, filename, overwrite=False):
